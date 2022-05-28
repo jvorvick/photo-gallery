@@ -23,7 +23,7 @@ const routes: Routes = [
     FormsModule,
     IonicModule,
     TabChildPageRoutingModule,
-    RouterModule.forChild(routes)
+    // RouterModule.forChild(routes)
   ],
   declarations: [TabChildPage]
 })
