@@ -19,6 +19,29 @@ export class PhotoService {
     this.platform = platform;
   }
 
+  public async addNewToGallery() {
+    // Take a photo
+    const capturedPhoto = await Camera.getPhoto({
+      resultType: CameraResultType.Uri, // file-based data; provides best performance
+      source: CameraSource.Camera, // automatically take a new photo with the camera
+      quality: 100 // highest quality (0 to 100)
+    });
+
+    // Save the picture and add it to photo collection
+    const savedImageFile = await this.savePicture(capturedPhoto);
+    this.photos.unshift(savedImageFile);
+
+    // this.photos.unshift({
+    //   filepath: "soon...",
+    //   webviewPath: capturedPhoto.webPath
+    // });
+
+    Storage.set({
+      key: this.PHOTO_STORAGE,
+      value: JSON.stringify(this.photos),
+    });
+  }
+
   public async loadSaved() {
     // Retrieve cached photo array data
     const photoList = await Storage.get({ key: this.PHOTO_STORAGE });
@@ -41,26 +64,22 @@ export class PhotoService {
     }
   }
 
-  public async addNewToGallery() {
-    // Take a photo
-    const capturedPhoto = await Camera.getPhoto({
-      resultType: CameraResultType.Uri, // file-based data; provides best performance
-      source: CameraSource.Camera, // automatically take a new photo with the camera
-      quality: 100 // highest quality (0 to 100)
-    });
+ public async deletePicture(photo: UserPhoto, position: number) {
+    // Remove this photo from the Photos reference data array
+    this.photos.splice(position, 1);
 
-    // Save the picture and add it to photo collection
-    const savedImageFile = await this.savePicture(capturedPhoto);
-    this.photos.unshift(savedImageFile);
-
-    // this.photos.unshift({
-    //   filepath: "soon...",
-    //   webviewPath: capturedPhoto.webPath
-    // });
-
+    // Update photos array cache by overwriting the existing photo array
     Storage.set({
       key: this.PHOTO_STORAGE,
       value: JSON.stringify(this.photos),
+    });
+
+    // delete photo file from filesystem
+    const filename = photo.filepath.substring(photo.filepath.lastIndexOf('/') + 1);
+
+    await Filesystem.deleteFile({
+      path: filename,
+      directory: Directory.Data,
     });
   }
 
@@ -116,7 +135,7 @@ export class PhotoService {
     }
   }
 
-
+ 
   private convertBlobToBase64 = (blob: Blob) => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
