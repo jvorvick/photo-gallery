@@ -10,6 +10,15 @@ const routes: Routes = [
       {
         path: 'tab-child',
         loadChildren: () => import('../tab-child/tab-child.module').then(m => m.TabChildPageModule)
+      },
+      {
+        path: 'tab-child2',
+        loadChildren: () => import('../tab-child2/tab-child2.module').then(m => m.TabChild2PageModule)
+      },
+      {
+        path: '',
+        redirectTo: '/tabs/tab1',
+        pathMatch: 'full'
       }
     ]
   }
