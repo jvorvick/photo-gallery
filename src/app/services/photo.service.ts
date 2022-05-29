@@ -19,6 +19,28 @@ export class PhotoService {
     this.platform = platform;
   }
 
+  public async loadSaved() {
+    // Retrieve cached photo array data
+    const photoList = await Storage.get({ key: this.PHOTO_STORAGE });
+    this.photos = JSON.parse(photoList.value) || [];
+
+    // Easiest way to detect when running on the web:
+    // "when the platform is NOT hybrid, do this"
+    if(!this.platform.is('hybrid')) {
+      // Display the photo by reading into base64 format
+      for (let photo of this.photos) {
+        // Read each saved photo's data from the Filesystem
+        const readFile = await Filesystem.readFile({
+          path: photo.filepath,
+          directory: Directory.Data,
+        });
+
+        // Web platform only: Load the photo as base64 data
+        photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`;
+      }
+    }
+  }
+
   public async addNewToGallery() {
     // Take a photo
     const capturedPhoto = await Camera.getPhoto({
@@ -104,27 +126,6 @@ export class PhotoService {
     reader.readAsDataURL(blob);
   });
 
-  public async loadSaved() {
-    // Retrieve cached photo array data
-    const photoList = await Storage.get({ key: this.PHOTO_STORAGE });
-    this.photos = JSON.parse(photoList.value) || [];
-
-    // Easiest way to detect when running on the web:
-    // "when the platform is NOT hybrid, do this"
-    if(!this.platform.is('hybrid')) {
-      // Display the photo by reading into base64 format
-      for (let photo of this.photos) {
-        // Read each saved photo's data from the Filesystem
-        const readFile = await Filesystem.readFile({
-          path: photo.filepath,
-          directory: Directory.Data,
-        });
-
-        // Web platform only: Load the photo as base64 data
-        photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`;
-      }
-    }
-  }
 }
 
 export interface UserPhoto {
